@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  SchmittAwsLabAudioSummaryMp3:
+    Type: AWS::S3::Bucket
+    DependsOn: S3InvokeLambdaPermission # Ordering, need to validate destination
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: "schmitt-aws-lab-audio-summary-mp3"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Function: !GetAtt SchmittAwsLabAudioSummmaryMp3.Arn
+
+  SchmittAwsLabAudioSummaryFeed:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: "schmitt-aws-lab-audio-summary-feed"
+
+  SchmittAwsLabLambdaBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: "schmitt-aws-lab-lambda"
+
+  SchmittAwsLabAudioSummmaryMp3:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: arn:aws:iam::331867785991:role/SchmittAwsLabAudioSummmaryMp3Role
+      Runtime: nodejs24.x
+      Handler: index.handler
+      FunctionName: schmitt-aws-lab-audio-summary-mp3
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 200 });
+
+  S3InvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt SchmittAwsLabAudioSummmaryMp3.Arn
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn: "arn:aws:s3:::schmitt-aws-lab-audio-summary-mp3"

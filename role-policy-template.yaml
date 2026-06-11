@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "DeployRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              #Service:
+              #  - "lambda.amazonaws.com"
+              AWS:
+                - "arn:aws:iam::331867785991:user/deploy"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "S3BucketCreation"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:CreateBucket"
+                Resource:
+                  - "*"
+        - PolicyName: "S3BucketNotificationCreation"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:PutBucketNotification"
+                Resource:
+                  - "arn:aws:s3:::schmitt-aws-lab-audio-summary-mp3"
+        - PolicyName: "CloudFormationGeneralAllow"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:GetTemplateSummary"
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:ExecuteChangeSet"
+                  - "cloudformation:DescribeChangeSet"
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:UpdateStack"
+                  - "cloudformation:DeleteStack"
+                Resource:
+                  - "arn:aws:cloudformation:us-east-2:331867785991:stack/*"
+        - PolicyName: "CloudFormationDenyRootCreated"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Deny
+                Action:
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:GetTemplateSummary"
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:ExecuteChangeSet"
+                  - "cloudformation:DescribeChangeSet"
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:UpdateStack"
+                  - "cloudformation:DeleteStack"
+                Resource:
+                  - "arn:aws:cloudformation:us-east-2:331867785991:stack/role-policy-template"
+                  - "arn:aws:cloudformation:us-east-2:331867785991:stack/create-deploy-user"
+        - PolicyName: "Lambda"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:CreateFunction"
+                  - "lambda:UpdateFunctionCode"
+                  - "lambda:DeleteFunction"
+                  - "lambda:GetFunction"
+                  - "lambda:ListFunctions"
+                  - "lambda:UpdateFunctionConfiguration"
+                  - "lambda:AddPermission"
+                  - "lambda:RemovePermission"
+                Resource:
+                  - "arn:aws:lambda:us-east-2:331867785991:function:*"
+              - Effect: Allow
+                Action:
+                  - "iam:PassRole"
+                Resource: # References `LambdaRole` section of the template
+                  - !GetAtt SchmittAwsLabAudioSummmaryMp3Role.Arn
+                    # understand the relationship between this and the lambda tempalte
+  SchmittAwsLabAudioSummmaryMp3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "SchmittAwsLabAudioSummmaryMp3Role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "S3Bucket0Lambda"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:ListBucket"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:DeleteObject"
+                Resource:
+                  - "arn:aws:s3:::schmitt-aws-lab-bucket-0"
+                  - "arn:aws:s3:::schmitt-aws-lab-bucket-0/*"
+        - PolicyName: "CloudWatchLogs"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3"
