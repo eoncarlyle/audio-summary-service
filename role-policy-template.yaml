@@ -128,8 +128,8 @@ Resources:
                   - "s3:PutObject"
                   - "s3:DeleteObject"
                 Resource:
-                  - "arn:aws:s3:::schmitt-aws-lab-bucket-0"
-                  - "arn:aws:s3:::schmitt-aws-lab-bucket-0/*"
+                  - "arn:aws:s3:::schmitt-aws-lab-audio-summary-mp3"
+                  - "arn:aws:s3:::schmitt-aws-lab-audio-summary-mp3/*"
         - PolicyName: "CloudWatchLogs"
           PolicyDocument:
             Version: 2012-10-17
@@ -140,9 +140,12 @@ Resources:
                   - "logs:PutRetentionPolicy"
                   - "logs:DeleteLogGroup"
                   - "logs:DescribeLogGroups"
-                Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3"
+                Resource: "arn:aws:logs:us-east-2:331867785991:*"
+                # The below did not work, for reasons not obvious to me:
+                # Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3"
               - Effect: Allow
                 Action:
-                  - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3:*"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                Resource: "arn:aws:logs:us-east-2:331867785991:*"
