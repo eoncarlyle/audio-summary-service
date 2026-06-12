@@ -63,6 +63,7 @@ Resources:
                   - "cloudformation:CreateStack"
                   - "cloudformation:UpdateStack"
                   - "cloudformation:DeleteStack"
+                  - "cloudformation:DeleteStack"
                 Resource:
                   - "arn:aws:cloudformation:us-east-2:331867785991:stack/role-policy-template"
                   - "arn:aws:cloudformation:us-east-2:331867785991:stack/create-deploy-user"
@@ -88,6 +89,21 @@ Resources:
                 Resource: # References `LambdaRole` section of the template
                   - !GetAtt SchmittAwsLabAudioSummmaryMp3Role.Arn
                     # understand the relationship between this and the lambda tempalte
+        - PolicyName: "CloudWatchLogs"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                Resource: "arn:aws:logs:us-east-2:331867785991:*"
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "logs:DeleteLogGroup"
+                  - "logs:DescribeLogGroups"
+                Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3:*"
   SchmittAwsLabAudioSummmaryMp3Role:
     Type: AWS::IAM::Role
     Properties:
@@ -121,6 +137,12 @@ Resources:
               - Effect: Allow
                 Action:
                   - "logs:CreateLogGroup"
+                  - "logs:PutRetentionPolicy"
+                  - "logs:DeleteLogGroup"
+                  - "logs:DescribeLogGroups"
+                Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3"
+              - Effect: Allow
+                Action:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3"
+                Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3:*"

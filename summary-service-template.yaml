@@ -2,14 +2,14 @@ AWSTemplateFormatVersion: "2010-09-09"
 Resources:
   SchmittAwsLabAudioSummaryMp3:
     Type: AWS::S3::Bucket
-    DependsOn: S3InvokeLambdaPermission # Ordering, need to validate destination
+    DependsOn: S3InvokeLambdaPermission
     DeletionPolicy: Delete
     Properties:
       BucketName: "schmitt-aws-lab-audio-summary-mp3"
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: "s3:ObjectCreated:*"
-            Function: !GetAtt SchmittAwsLabAudioSummmaryMp3.Arn
+            Function: !GetAtt AudioSummaryMp3Lambda.Arn
 
   SchmittAwsLabAudioSummaryFeed:
     Type: AWS::S3::Bucket
@@ -23,7 +23,7 @@ Resources:
     Properties:
       BucketName: "schmitt-aws-lab-lambda"
 
-  SchmittAwsLabAudioSummmaryMp3:
+  AudioSummaryMp3Lambda:
     Type: AWS::Lambda::Function
     Properties:
       Role: arn:aws:iam::331867785991:role/SchmittAwsLabAudioSummmaryMp3Role
@@ -37,13 +37,7 @@ Resources:
   S3InvokeLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !GetAtt SchmittAwsLabAudioSummmaryMp3.Arn
+      FunctionName: !GetAtt AudioSummaryMp3Lambda.Arn
       Action: lambda:InvokeFunction
       Principal: s3.amazonaws.com
       SourceArn: "arn:aws:s3:::schmitt-aws-lab-audio-summary-mp3"
-
-  SchmittAwsLabAudioSummmaryMp3Logs:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: /aws/lambda/schmitt-aws-lab-audio-summary-mp3
-      RetentionInDays: 3
