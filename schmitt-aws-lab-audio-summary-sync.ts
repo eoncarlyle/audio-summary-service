@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { getGeminiApiKey, getOrCreateS3Object, saveFeed, Feed } from "./audio-summary-shared.js";
-import { DynamoDBClient, ScanCommand, DeleteCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand, DeleteItemCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
 const dynamodbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
@@ -37,7 +37,7 @@ export const handler = async () => {
       await saveFeed(feed, etag);
 
       await googleGenAI.files.delete({ name: geminiFileName });
-      await docClient.send(new DeleteCommand({ 
+      await docClient.send(new DeleteItemCommand({ 
         TableName: process.env.BATCHES_TABLE_NAME, 
         Key: { slug: {S: slug}, resourceLink: {S: resourceLink} } 
       }));
