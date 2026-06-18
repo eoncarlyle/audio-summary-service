@@ -6,6 +6,7 @@ export const handler = async (event: any) => {
     return { statusCode: 400, body: "Missing slug parameter" };
   }
 
+  //edit: this will create objects, need new one of these
   const { feed, etag } = await getOrCreateS3Object<Feed>(slug, { slug, items: [] });
   
   if (!etag) { // etag is undefined if file didn't exist
