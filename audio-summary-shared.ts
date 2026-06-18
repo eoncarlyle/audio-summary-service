@@ -41,6 +41,7 @@ export async function getGeminiApiKey(): Promise<string> {
   return cachedGeminiApiKey;
 }
 
+//todo: check that state is appropriate 
 export async function waitForFileProcessing(googleGenAI: GoogleGenAI, fileName: string): Promise<void> {
   let file = await googleGenAI.files.get({ name: fileName });
   while (file.state === FileState.PROCESSING) {
