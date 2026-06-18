@@ -1,7 +1,5 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
 import { S3Event } from "aws-lambda";
-import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, HeadObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 
@@ -13,8 +11,10 @@ export const handler = async (event: S3Event): Promise<string | undefined> => {
     Bucket: bucket,
     Key: key,
   };
+
   try {
-    const { ContentType } = await s3.send(new HeadObjectCommand(params));
+    const { ContentType } = await s3.send(new GetObjectCommand(params));
+
     console.log("CONTENT TYPE:", ContentType);
     return ContentType;
   } catch (err) {

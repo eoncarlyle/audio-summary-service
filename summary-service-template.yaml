@@ -9,7 +9,7 @@ Resources:
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: "s3:ObjectCreated:*"
-            Function: !GetAtt AudioSummaryMp3Lambda.Arn
+            Function: !GetAtt AudioSummaryS3Lambda.Arn
 
   SchmittAwsLabAudioSummaryFeed:
     Type: AWS::S3::Bucket
@@ -23,13 +23,21 @@ Resources:
     Properties:
       BucketName: "schmitt-aws-lab-lambda"
 
-  AudioSummaryMp3Lambda:
+  GeminiApiKeyParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /lambda/geminiApiKey
+      Type: String
+      Value: placeholder
+
+  # Used for MP3 files dropped into `schmitt-aws-lab-audio-summary-mp3`
+  AudioSummaryS3Lambda:
     Type: AWS::Lambda::Function
     Properties:
-      Role: arn:aws:iam::331867785991:role/SchmittAwsLabAudioSummmaryMp3Role
+      Role: arn:aws:iam::331867785991:role/AudioSummaryS3LambdaRole
       Runtime: nodejs24.x
       Handler: index.handler
-      FunctionName: schmitt-aws-lab-audio-summary-mp3
+      FunctionName: schmitt-aws-lab-audio-summary-s3
       Code:
         ZipFile: |
           exports.handler = async () => ({ statusCode: 200 });
@@ -37,7 +45,20 @@ Resources:
   S3InvokeLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !GetAtt AudioSummaryMp3Lambda.Arn
+      FunctionName: !GetAtt AudioSummaryS3Lambda.Arn
       Action: lambda:InvokeFunction
       Principal: s3.amazonaws.com
       SourceArn: "arn:aws:s3:::schmitt-aws-lab-audio-summary-mp3"
+
+  # Used for requests with link + metadata specified
+  AudioSummaryLinkedLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: arn:aws:iam::331867785991:role/AudioSummaryLinkedLambdaRole
+      Runtime: nodejs24.x
+      Handler: index.handler
+      FunctionName: schmitt-aws-lab-audio-summary-linked
+      Timeout: 900
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 200 });

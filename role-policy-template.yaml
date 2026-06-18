@@ -87,7 +87,8 @@ Resources:
                 Action:
                   - "iam:PassRole"
                 Resource: # References `LambdaRole` section of the template
-                  - !GetAtt SchmittAwsLabAudioSummmaryMp3Role.Arn
+                  - !GetAtt AudioSummaryS3LambdaRole.Arn
+                  - !GetAtt AudioSummaryLinkedLambdaRole.Arn
                     # understand the relationship between this and the lambda tempalte
         - PolicyName: "CloudWatchLogs"
           PolicyDocument:
@@ -104,10 +105,21 @@ Resources:
                   - "logs:DeleteLogGroup"
                   - "logs:DescribeLogGroups"
                 Resource: "arn:aws:logs:us-east-2:331867785991:log-group:/aws/lambda/schmitt-aws-lab-audio-summary-mp3:*"
-  SchmittAwsLabAudioSummmaryMp3Role:
+        - PolicyName: "Secrets"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:GetParameters"
+                  - "ssm:PutParameter"
+                  - "ssm:GetParameter"
+                  - "ssm:DeleteParameter"
+                Resource: arn:aws:ssm:us-east-2:331867785991:parameter/lambda/geminiApiKey
+  AudioSummaryS3LambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: "SchmittAwsLabAudioSummmaryMp3Role"
+      RoleName: "AudioSummaryS3LambdaRole"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -117,7 +129,7 @@ Resources:
                 - "lambda.amazonaws.com"
             Action: "sts:AssumeRole"
       Policies:
-        - PolicyName: "S3Bucket0Lambda"
+        - PolicyName: "S3BucketLambda"
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -149,3 +161,55 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                 Resource: "arn:aws:logs:us-east-2:331867785991:*"
+  AudioSummaryLinkedLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "AudioSummaryLinkedLambdaRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "S3BucketLambda"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:ListBucket"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:DeleteObject"
+                Resource:
+                  - "arn:aws:s3:::schmitt-aws-lab-audio-summary-feed"
+                  - "arn:aws:s3:::schmitt-aws-lab-audio-summary-feed/*"
+        - PolicyName: "CloudWatchLogs"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:PutRetentionPolicy"
+                  - "logs:DeleteLogGroup"
+                  - "logs:DescribeLogGroups"
+                Resource: "arn:aws:logs:us-east-2:331867785991:*"
+              - Effect: Allow
+                Action:
+                  - "logs:PutLogEvents"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                Resource: "arn:aws:logs:us-east-2:331867785991:*"
+        - PolicyName: "Secrets"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:GetParameter"
+                  - "kms:Decrypt"
+                Resource: arn:aws:ssm:us-east-2:331867785991:parameter/lambda/geminiApiKey
