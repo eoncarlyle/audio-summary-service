@@ -1,5 +1,8 @@
 # Notes
 
+## Disclosures
+Gemini wrote almost all of the lambdas because this is supposed to be an AWS IAM and CF training exercise
+
 https://feed.podbean.com/thetelecomscompodcast/feed.xml
 
 Dynamo tables for slugs and for batches in progress for google file handling=
