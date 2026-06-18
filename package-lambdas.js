@@ -67,9 +67,15 @@ async function deployFunction(tsFile) {
 }
 
 async function main() {
-  const tsFiles = fs.readdirSync(".").filter((f) => f.endsWith(".ts"));
+  const lambdaFiles = [
+    "schmitt-aws-lab-audio-summary-linked.ts",
+    "schmitt-aws-lab-audio-summary-s3.ts",
+    "schmitt-aws-lab-audio-summary-sync.ts",
+    "schmitt-aws-lab-audio-summary-truncate.ts",
+    "schmitt-aws-lab-audio-summary-get.ts"
+  ];
 
-  for (const tsFile of tsFiles) {
+  for (const tsFile of lambdaFiles) {
     await deployFunction(tsFile);
   }
 
