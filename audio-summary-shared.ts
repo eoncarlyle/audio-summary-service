@@ -5,12 +5,14 @@ import { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } from 
 import { GoogleGenAI, FileState, File } from "@google/genai";
 
 const ssmClient = new SSMClient({ region: process.env.AWS_REGION });
+
+// Note: not every lambda is allowed to do every S3 or Dynamo action
 const dynamodbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const docClient = DynamoDBDocumentClient.from(dynamodbClient);
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
 export const FEED_BUCKET = "schmitt-aws-lab-audio-summary-feed";
-export const BATCHES_TABLE_NAME = "batches";
+export const BATCHES_TABLE_NAME = "audio-summary-batches"
 
 export interface FeedItem {
   guid: string;
@@ -94,6 +96,7 @@ export async function getOrCreateS3Object<T>(objectKey: string, defaultValue: T)
     if (err.name !== "NotFound") throw err;
   }
 
+// Review comment: make callers retry 3 times on conflict
   await s3Client.send(
     new PutObjectCommand({
       Bucket: FEED_BUCKET,
@@ -106,6 +109,7 @@ export async function getOrCreateS3Object<T>(objectKey: string, defaultValue: T)
   return { body: defaultValue, etag: undefined };
 }
 
+// Review comment: make callers retry 3 times on conflict
 export async function saveFeed(feed: Feed, etag: string | undefined): Promise<void> {
   await s3Client.send(
     new PutObjectCommand({

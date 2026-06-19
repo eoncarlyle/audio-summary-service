@@ -39,7 +39,7 @@ export const handler = async () => {
       await googleGenAI.files.delete({ name: geminiFileName });
       await docClient.send(
         new DeleteItemCommand({
-          TableName: process.env.BATCHES_TABLE_NAME,
+          TableName: BATCHES_TABLE_NAME,
           Key: { slug: { S: slug }, resourceLink: { S: resourceLink } },
         }),
       );

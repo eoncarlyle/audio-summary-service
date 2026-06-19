@@ -23,6 +23,28 @@ Resources:
     Properties:
       BucketName: "schmitt-aws-lab-lambda"
 
+  AudioSummaryBatchesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "audio-summary-batches"
+      AttributeDefinitions:
+        - AttributeName: slug
+          AttributeType: S
+        - AttributeName: resourceLink
+          AttributeType: S
+        # document store: thought I needed to provide these, maybe I'm too relational brained
+        #- AttributeName: geminiBatchName
+        #  AttributeType: S
+        #- AttributeName: geminiFileName
+        #  AttributeType: S
+        #- AttributeName: createdAt
+        #  AttributeType: S
+      KeySchema:
+        - AttributeName: slug
+          KeyType: HASH
+        - AttributeName: resourceLink
+          KeyType: RANGE
+
   GeminiApiKeyParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -42,8 +64,10 @@ Resources:
         ZipFile: |
           exports.handler = async () => ({ statusCode: 200 });
 
+
   S3InvokeLambdaPermission:
     Type: AWS::Lambda::Permission
+    DependsOn: AudioSummaryS3Lambda
     Properties:
       FunctionName: !GetAtt AudioSummaryS3Lambda.Arn
       Action: lambda:InvokeFunction

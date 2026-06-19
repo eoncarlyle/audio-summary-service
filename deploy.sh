@@ -1,0 +1,1 @@
+aws cloudformation deploy --template-file summary-service-template.yaml --stack-name summary-service --capabilities CAPABILITY_NAMED_IAM --profile deploy-role

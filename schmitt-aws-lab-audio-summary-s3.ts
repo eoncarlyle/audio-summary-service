@@ -5,6 +5,7 @@ import { getGeminiApiKey, waitForFileProcessing, recordBatchJob } from "./audio-
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 const model = "gemini-3.1-flash-lite";
 
+// Review comment: change to S3 event
 export const handler = async (event: any): Promise<string | undefined> => {
   const record = event.Records[0];
   const bucket = record.s3.bucket.name;
@@ -51,7 +52,7 @@ export const handler = async (event: any): Promise<string | undefined> => {
 
   if (!batchJob.name) throw new Error("Batch creation failed");
 
-  await recordBatchJob(slug, downloadSource, batchJob.name, uploadedFile.name);
+  await recordBatchJob(slug, downloadSource, batchJob.name, uploadedFile);
 
   return batchJob.name;
 };
