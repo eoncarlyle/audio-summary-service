@@ -44,13 +44,10 @@ Resources:
           KeyType: HASH
         - AttributeName: resourceLink
           KeyType: RANGE
-
-  GeminiApiKeyParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: /lambda/geminiApiKey
-      Type: SecureString
-      Value: placeholder
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
 
   # Used for MP3 files dropped into `schmitt-aws-lab-audio-summary-mp3`
   AudioSummaryS3Lambda:

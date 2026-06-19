@@ -127,6 +127,8 @@ Resources:
                 Action:
                   - "dynamodb:CreateTable"
                   - "dynamodb:DeleteTable"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:UpdateTable"
                 Resource: arn:aws:dynamodb:us-east-2:331867785991:table/audio-summary-batches
   AudioSummaryS3LambdaRole:
     Type: AWS::IAM::Role
@@ -180,7 +182,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "dynamodb:PutItem"
-                Resource: arn:aws:dynamodb:us-east-2:123456789012:table/audio-summary-batches
+                Resource: arn:aws:dynamodb:us-east-2:331867785991:table/audio-summary-batches
   AudioSummaryLinkedLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -239,7 +241,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "dynamodb:PutItem"
-                Resource: arn:aws:dynamodb:us-east-2:123456789012:table/audio-summary-batches
+                Resource: arn:aws:dynamodb:us-east-2:331867785991:table/audio-summary-batches
   AudioSummarySyncLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -261,7 +263,7 @@ Resources:
                 Action:
                   - "dynamodb:Scan"
                   - "dynamodb:DeleteItem"
-                Resource: arn:aws:dynamodb:us-east-2:123456789012:table/audio-summary-batches
+                Resource: arn:aws:dynamodb:us-east-2:331867785991:table/audio-summary-batches
   AudioSummaryTruncateLambdaRole:
     Type: AWS::IAM::Role
     Properties:
