@@ -183,6 +183,22 @@ Resources:
                 Action:
                   - "dynamodb:PutItem"
                 Resource: arn:aws:dynamodb:us-east-2:331867785991:table/audio-summary-batches
+        - PolicyName: "Secrets"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:GetParameter"
+                Resource: arn:aws:ssm:us-east-2:331867785991:parameter/lambda/geminiApiKey
+        - PolicyName: "KmsDecrypt"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kms:Decrypt"
+                Resource: arn:aws:kms:us-east-2:331867785991:alias/aws/ssm
   AudioSummaryLinkedLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -234,6 +250,14 @@ Resources:
                 Action:
                   - "ssm:GetParameter"
                 Resource: arn:aws:ssm:us-east-2:331867785991:parameter/lambda/geminiApiKey
+        - PolicyName: "KmsDecrypt"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kms:Decrypt"
+                Resource: arn:aws:kms:us-east-2:331867785991:alias/aws/ssm
         - PolicyName: "DynamoAccess"
           PolicyDocument:
             Version: 2012-10-17
@@ -264,6 +288,22 @@ Resources:
                   - "dynamodb:Scan"
                   - "dynamodb:DeleteItem"
                 Resource: arn:aws:dynamodb:us-east-2:331867785991:table/audio-summary-batches
+        - PolicyName: "Secrets"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:GetParameter"
+                Resource: arn:aws:ssm:us-east-2:331867785991:parameter/lambda/geminiApiKey
+        - PolicyName: "KmsDecrypt"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kms:Decrypt"
+                Resource: arn:aws:kms:us-east-2:331867785991:alias/aws/ssm
   AudioSummaryTruncateLambdaRole:
     Type: AWS::IAM::Role
     Properties:
