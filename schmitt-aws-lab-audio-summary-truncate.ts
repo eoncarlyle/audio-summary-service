@@ -9,10 +9,10 @@ export const handler = async () => {
 
   for (const object of listResponse.Contents) {
     if (!object.Key?.endsWith(".json")) continue;
-    
+
     const slug = object.Key.replace(".json", "");
-    const { feed, etag } = await getOrCreateS3Object<Feed>(slug, { slug, items: [] });
-    
+    const { body: feed, etag } = await getOrCreateS3Object<Feed>(slug, { slug, items: [] });
+
     if (feed.items.length > 25) {
       feed.items = feed.items.slice(0, 25);
       await saveFeed(feed, etag);

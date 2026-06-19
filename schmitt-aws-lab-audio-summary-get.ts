@@ -1,4 +1,4 @@
-import { getOrCreateS3Object, Feed } from "./audio-summary-shared.js";
+import { getS3Object, Feed } from "./audio-summary-shared.js";
 
 export const handler = async (event: any) => {
   const slug = event.queryStringParameters?.slug;
@@ -6,16 +6,15 @@ export const handler = async (event: any) => {
     return { statusCode: 400, body: "Missing slug parameter" };
   }
 
-  //edit: this will create objects, need new fucntion for this
-  const { feed, etag } = await getOrCreateS3Object<Feed>(slug, { slug, items: [] });
-  
-  if (!etag) { // etag is undefined if file didn't exist
+  const result = await getS3Object<Feed>(slug);
+
+  if (!result || !result.body) {
     return { statusCode: 404, body: "Feed not found" };
   }
 
   return {
     statusCode: 200,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(feed),
+    body: JSON.stringify(result.body),
   };
 };

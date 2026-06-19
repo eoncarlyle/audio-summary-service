@@ -10,7 +10,7 @@ export const handler = async (event: any): Promise<string | undefined> => {
   const bucket = record.s3.bucket.name;
   const key = record.s3.object.key;
 
-  const [slug, fileName] = key.split('/');
+  const [slug, fileName] = key.split("/");
   const downloadSource = `s3://${bucket}/${key}`;
 
   const geminiApiKey = await getGeminiApiKey();
@@ -30,7 +30,6 @@ export const handler = async (event: any): Promise<string | undefined> => {
   });
 
   if (!uploadedFile.name) throw new Error("File upload failed");
-
   await waitForFileProcessing(googleGenAI, uploadedFile.name);
 
   const batchJob = await googleGenAI.batches.create({

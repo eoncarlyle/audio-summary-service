@@ -26,7 +26,7 @@ export const handler = async () => {
       const result = await (googleGenAI.batches as any).getResults({ name: geminiBatchName });
       const summaryText = result.results[0].text;
 
-      const { feed, etag } = await getOrCreateS3Object<Feed>(slug, { slug, items: [] });
+      const { body: feed, etag } = await getOrCreateS3Object<Feed>(slug, { slug, items: [] });
       feed.items.unshift({
         guid: geminiBatchName,
         title: "Summary",
@@ -37,11 +37,12 @@ export const handler = async () => {
       await saveFeed(feed, etag);
 
       await googleGenAI.files.delete({ name: geminiFileName });
-      await docClient.send(new DeleteItemCommand({ 
-        TableName: process.env.BATCHES_TABLE_NAME, 
-        Key: { slug: {S: slug}, resourceLink: {S: resourceLink} } 
-      }));
-      
+      await docClient.send(
+        new DeleteItemCommand({
+          TableName: process.env.BATCHES_TABLE_NAME,
+          Key: { slug: { S: slug }, resourceLink: { S: resourceLink } },
+        }),
+      );
     } else if (String(batchJob.state) === "FAILED" || String(batchJob.state) === "CANCELLED") {
       console.error(`Batch ${geminiBatchName} for ${slug} ${resourceLink} failed with state: ${batchJob.state}`);
     } else {
