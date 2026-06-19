@@ -27,7 +27,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Name: /lambda/geminiApiKey
-      Type: String
+      Type: SecureString
       Value: placeholder
 
   # Used for MP3 files dropped into `schmitt-aws-lab-audio-summary-mp3`

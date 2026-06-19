@@ -6,7 +6,7 @@ export const handler = async (event: any) => {
     return { statusCode: 400, body: "Missing slug parameter" };
   }
 
-  const result = await getS3Object<Feed>(slug);
+  const result = await getS3Object<Feed>(`${slug}.json`);
 
   if (!result || !result.body) {
     return { statusCode: 404, body: "Feed not found" };

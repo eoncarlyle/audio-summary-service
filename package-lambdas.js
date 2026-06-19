@@ -58,7 +58,7 @@ async function deployFunction(tsFile) {
       `--function-name ${functionName}`,
       `--zip-file fileb://${zipFile}`,
       "--profile deploy-role",
-      "| cat"
+      "| cat",
     ].join(" "),
     { stdio: "inherit" },
   );
@@ -72,7 +72,7 @@ async function main() {
     "schmitt-aws-lab-audio-summary-s3.ts",
     "schmitt-aws-lab-audio-summary-sync.ts",
     "schmitt-aws-lab-audio-summary-truncate.ts",
-    "schmitt-aws-lab-audio-summary-get.ts"
+    "schmitt-aws-lab-audio-summary-get.ts",
   ];
 
   for (const tsFile of lambdaFiles) {

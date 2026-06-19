@@ -2,7 +2,7 @@ import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
-import { GoogleGenAI, FileState } from "@google/genai";
+import { GoogleGenAI, FileState, File } from "@google/genai";
 
 const ssmClient = new SSMClient({ region: process.env.AWS_REGION });
 const dynamodbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
@@ -10,13 +10,14 @@ const docClient = DynamoDBDocumentClient.from(dynamodbClient);
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
 export const FEED_BUCKET = "schmitt-aws-lab-audio-summary-feed";
+export const BATCHES_TABLE_NAME = "batches";
 
 export interface FeedItem {
   guid: string;
   title: string;
   link: string;
   description: string;
-  createdAt: string;
+  pubDate: string;
 }
 
 export interface Feed {
@@ -39,7 +40,6 @@ export async function getGeminiApiKey(): Promise<string> {
   return cachedGeminiApiKey;
 }
 
-//todo: check that state is appropriate
 export async function waitForFileProcessing(googleGenAI: GoogleGenAI, fileName: string): Promise<void> {
   let file = await googleGenAI.files.get({ name: fileName });
   while (file.state === FileState.PROCESSING) {
@@ -52,8 +52,8 @@ export async function waitForFileProcessing(googleGenAI: GoogleGenAI, fileName: 
 export async function recordBatchJob(
   slug: string,
   resourceLink: string,
-  batchJobName: string,
-  fileName: string,
+  geminiBatchName: string,
+  geminiFile: File,
 ): Promise<void> {
   await docClient.send(
     new PutCommand({
@@ -61,17 +61,17 @@ export async function recordBatchJob(
       Item: {
         slug,
         resourceLink,
-        geminiBatchName: batchJobName,
-        geminiFileName: fileName,
+        geminiBatchName,
+        geminiFileName: geminiFile.name,
         createdAt: new Date().toISOString(),
       },
     }),
   );
 }
 
-export async function getS3Object<T>(slug: string): Promise<ETagObject<T> | null> {
+export async function getS3Object<T>(objectKey: string): Promise<ETagObject<T> | null> {
   try {
-    const response = await s3Client.send(new GetObjectCommand({ Bucket: FEED_BUCKET, Key: `${slug}.json` }));
+    const response = await s3Client.send(new GetObjectCommand({ Bucket: FEED_BUCKET, Key: objectKey }));
     const maybeBody = await response.Body?.transformToString();
     const body = maybeBody ? (JSON.parse(maybeBody) as T) : undefined;
     return body ? { body: body, etag: response.ETag } : null;
@@ -81,12 +81,10 @@ export async function getS3Object<T>(slug: string): Promise<ETagObject<T> | null
   }
 }
 
-export async function getOrCreateS3Object<T>(object: string, defaultValue: T): Promise<ETagObject<T>> {
-  const key = `${object}.json`;
-
+export async function getOrCreateS3Object<T>(objectKey: string, defaultValue: T): Promise<ETagObject<T>> {
   try {
-    const head = await s3Client.send(new HeadObjectCommand({ Bucket: FEED_BUCKET, Key: key }));
-    const response = await s3Client.send(new GetObjectCommand({ Bucket: FEED_BUCKET, Key: key }));
+    const head = await s3Client.send(new HeadObjectCommand({ Bucket: FEED_BUCKET, Key: objectKey }));
+    const response = await s3Client.send(new GetObjectCommand({ Bucket: FEED_BUCKET, Key: objectKey }));
     const body = await response.Body?.transformToString();
     return {
       body: body ? (JSON.parse(body) as T) : defaultValue,
@@ -99,7 +97,7 @@ export async function getOrCreateS3Object<T>(object: string, defaultValue: T): P
   await s3Client.send(
     new PutObjectCommand({
       Bucket: FEED_BUCKET,
-      Key: key,
+      Key: objectKey,
       Body: JSON.stringify(defaultValue),
       ContentType: "application/json",
     }),

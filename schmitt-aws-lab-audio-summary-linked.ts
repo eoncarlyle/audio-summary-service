@@ -27,41 +27,45 @@ export const handler = async (event: LinkedSummaryLambdaEvent): Promise<string |
   const contentType = response.headers.get("content-type") || "application/octet-stream";
   const contentBuffer = await response.arrayBuffer();
 
-  const uploadedFile = await googleGenAI.files.upload({
+  const geminiFile = await googleGenAI.files.upload({
     file: new Blob([contentBuffer], { type: contentType }),
     config: {
       displayName: getEventFileName(event),
     },
   });
 
-  if (!uploadedFile.name) {
+  if (!geminiFile.name) {
     throw new Error("File upload failed - no file name returned");
   }
+  try {
+    await waitForFileProcessing(googleGenAI, geminiFile.name);
 
-  await waitForFileProcessing(googleGenAI, uploadedFile.name);
+    const batchJob = await googleGenAI.batches.create({
+      model: model,
+      src: [
+        {
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { fileData: { fileUri: geminiFile.uri!, mimeType: contentType } },
+                { text: "Please provide a comprehensive summary of this content." },
+              ],
+            },
+          ],
+        },
+      ],
+    });
 
-  const batchJob = await googleGenAI.batches.create({
-    model: model,
-    src: [
-      {
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { fileData: { fileUri: uploadedFile.uri!, mimeType: contentType } },
-              { text: "Please provide a comprehensive summary of this content." },
-            ],
-          },
-        ],
-      },
-    ],
-  });
+    if (batchJob.name === undefined) {
+      throw Error();
+    }
 
-  if (batchJob.name === undefined) {
-    throw Error();
+    await recordBatchJob(event.feedSlug, event.downloadSource, batchJob.name, geminiFile);
+
+    return batchJob.name;
+  } catch (error) {
+    await googleGenAI.files.delete({ name: geminiFile.name });
+    throw error;
   }
-
-  await recordBatchJob(event.feedSlug, event.downloadSource, batchJob.name, uploadedFile.name);
-
-  return batchJob.name;
 };

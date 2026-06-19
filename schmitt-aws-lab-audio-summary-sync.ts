@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { getGeminiApiKey, getOrCreateS3Object, saveFeed, Feed } from "./audio-summary-shared.js";
+import { getGeminiApiKey, getOrCreateS3Object, saveFeed, Feed, BATCHES_TABLE_NAME } from "./audio-summary-shared.js";
 import { DynamoDBClient, ScanCommand, DeleteItemCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
@@ -10,7 +10,7 @@ export const handler = async () => {
   const geminiApiKey = await getGeminiApiKey();
   const googleGenAI = new GoogleGenAI({ apiKey: geminiApiKey });
 
-  const { Items } = await docClient.send(new ScanCommand({ TableName: process.env.BATCHES_TABLE_NAME }));
+  const { Items } = await docClient.send(new ScanCommand({ TableName: BATCHES_TABLE_NAME }));
 
   if (!Items) return;
 
@@ -26,13 +26,13 @@ export const handler = async () => {
       const result = await (googleGenAI.batches as any).getResults({ name: geminiBatchName });
       const summaryText = result.results[0].text;
 
-      const { body: feed, etag } = await getOrCreateS3Object<Feed>(slug, { slug, items: [] });
+      const { body: feed, etag } = await getOrCreateS3Object<Feed>(`${slug}.json`, { slug, items: [] });
       feed.items.unshift({
         guid: geminiBatchName,
         title: "Summary",
         link: resourceLink,
         description: summaryText,
-        createdAt: new Date().toISOString(),
+        pubDate: new Date().toUTCString(),
       });
       await saveFeed(feed, etag);
 
