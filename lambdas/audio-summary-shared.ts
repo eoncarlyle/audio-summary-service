@@ -36,7 +36,7 @@ let cachedGeminiApiKey: string | undefined;
 
 export async function getGeminiApiKey(): Promise<string> {
   if (cachedGeminiApiKey) return cachedGeminiApiKey;
-  const response = await ssmClient.send(new GetParameterCommand({ Name: "lambda/geminiApiKey", WithDecryption: true }));
+  const response = await ssmClient.send(new GetParameterCommand({ Name: "/lambda/geminiApiKey", WithDecryption: true }));
   if (!response.Parameter?.Value) throw new Error("Gemini API key not found");
   cachedGeminiApiKey = response.Parameter.Value;
   return cachedGeminiApiKey;

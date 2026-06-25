@@ -1,0 +1,13 @@
+{
+  "name": "audio-summary-uploader",
+  "version": "1.0.0",
+  "description": "Uploads podcast files to Google File API and invokes the linked lambda",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "@aws-sdk/client-lambda": "^3.0.0"
+  }
+}

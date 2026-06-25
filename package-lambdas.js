@@ -4,7 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const { createWriteStream } = require("fs");
 
-const DIST_DIR = "dist";
+const BUILD_DIR = "lambdas/build";
+const DIST_DIR = `${BUILD_DIR}/dist`;
 
 async function zipDirectory(sourceDir, outPath) {
   const { ZipArchive } = await import("archiver");
@@ -22,7 +23,7 @@ async function zipDirectory(sourceDir, outPath) {
 
 async function deployFunction(tsFile) {
   const functionName = path.basename(tsFile, ".ts");
-  const zipFile = `${functionName}.zip`;
+  const zipFile = `${BUILD_DIR}/${functionName}.zip`;
 
   console.log(`Processing ${functionName}...`);
 
@@ -66,16 +67,16 @@ async function deployFunction(tsFile) {
   console.log(`  Done with ${functionName}`);
 }
 
-async function main() {
-  const lambdaFiles = [
-    "schmitt-aws-lab-audio-summary-linked.ts",
-    "schmitt-aws-lab-audio-summary-s3.ts",
-    "schmitt-aws-lab-audio-summary-sync.ts",
-    "schmitt-aws-lab-audio-summary-truncate.ts",
-    "schmitt-aws-lab-audio-summary-get.ts",
-  ];
+const LAMBDA_FILES = [
+  "lambdas/schmitt-aws-lab-audio-summary-linked.ts",
+  "lambdas/schmitt-aws-lab-audio-summary-s3.ts",
+  "lambdas/schmitt-aws-lab-audio-summary-sync.ts",
+  "lambdas/schmitt-aws-lab-audio-summary-truncate.ts",
+  "lambdas/schmitt-aws-lab-audio-summary-get.ts",
+];
 
-  for (const tsFile of lambdaFiles) {
+async function deployAll() {
+  for (const tsFile of LAMBDA_FILES) {
     await deployFunction(tsFile);
   }
 
@@ -85,7 +86,12 @@ async function main() {
   console.log("All functions deployed!");
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+module.exports = { deployAll };
+
+// Run directly if called as script
+if (require.main === module) {
+  deployAll().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

@@ -24,3 +24,9 @@ Run the following command in the terminal to type-check all project files:
 ```bash
 npx tsc --noEmit --esModuleInterop --target es2022 --moduleResolution Node16 --module Node16 --skipLibCheck *.ts
 ```
+
+## Deploy
+
+```
+GEMINI_API_KEY=$SNIP node master-deploy.js
+```

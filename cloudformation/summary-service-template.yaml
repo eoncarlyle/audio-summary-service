@@ -80,6 +80,70 @@ Resources:
       Handler: index.handler
       FunctionName: schmitt-aws-lab-audio-summary-linked
       Timeout: 900
+      MemorySize: 512
       Code:
         ZipFile: |
           exports.handler = async () => ({ statusCode: 200 });
+
+  # Polls DynamoDB for completed Gemini batch jobs and updates feeds
+  AudioSummarySyncLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: arn:aws:iam::331867785991:role/AudioSummarySyncLambdaRole
+      Runtime: nodejs24.x
+      Handler: index.handler
+      FunctionName: schmitt-aws-lab-audio-summary-sync
+      Timeout: 900
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 200 });
+
+  # Truncates feeds to max 25 items
+  AudioSummaryTruncateLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: arn:aws:iam::331867785991:role/AudioSummaryTruncateLambdaRole
+      Runtime: nodejs24.x
+      Handler: index.handler
+      FunctionName: schmitt-aws-lab-audio-summary-truncate
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 200 });
+
+  # HTTP endpoint to retrieve feed JSON
+  AudioSummaryGetLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: arn:aws:iam::331867785991:role/AudioSummaryGetLambdaRole
+      Runtime: nodejs24.x
+      Handler: index.handler
+      FunctionName: schmitt-aws-lab-audio-summary-get
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 200 });
+
+  # EventBridge Scheduler - runs sync every 10 minutes
+  AudioSummarySyncSchedule:
+    Type: AWS::Scheduler::Schedule
+    DependsOn: AudioSummarySyncLambda
+    Properties:
+      Name: "audio-summary-sync-schedule"
+      ScheduleExpression: "cron(0/10 * * * ? *)"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt AudioSummarySyncLambda.Arn
+        RoleArn: "arn:aws:iam::331867785991:role/AudioSummarySchedulerRole"
+
+  # EventBridge Scheduler - runs truncate every 10 minutes
+  AudioSummaryTruncateSchedule:
+    Type: AWS::Scheduler::Schedule
+    DependsOn: AudioSummaryTruncateLambda
+    Properties:
+      Name: "audio-summary-truncate-schedule"
+      ScheduleExpression: "cron(0/10 * * * ? *)"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt AudioSummaryTruncateLambda.Arn
+        RoleArn: "arn:aws:iam::331867785991:role/AudioSummarySchedulerRole"
